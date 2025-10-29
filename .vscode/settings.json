@@ -1,0 +1,61 @@
+{
+    "editor.rulers": [
+        100
+    ],
+    "workbench.colorCustomizations": {
+        "editorWarning.foreground": "#fff52e57",
+        "editorError.foreground": "#ff0000",
+        "editorInfo.foreground": "#ffffff56",
+        "errorLens.errorBackground": "#ff000022",
+        "errorLens.errorForeground": "#ff0000",
+        "errorLens.warningForeground": "#c3bb20bb",
+        "errorLens.warningBackground": "#4a473633",
+        "errorLens.infoForeground": "#ffffff6b",
+        "errorLens.infoBackground": "#fdfdfd8f",
+        "errorLens.hintForeground": "#00ff00",
+        "editor.selectionBackground": "#293c9ba1",
+        /* Side Panel */
+        "activityBar.background": "#5b0a0a",
+        "activityBar.inactiveForeground": "#ffadb9",
+        "activityBarBadge.foreground": "#ffadb9",
+        "activityBar.activeBackground": "#ffadb9",
+        "activityBar.foreground": "#7f35ee",
+        "activityBarBadge.background": "#774eac",
+        /* Main Window Title */
+        "titleBar.activeBackground": "#5b0a0a",
+        "titleBar.activeForeground": "#ffadb9",
+    },
+    "editor.fontFamily": "Fira Code",
+    "editor.fontLigatures": true,
+    "editor.fontWeight": "300",
+    "editor.fontSize": 13,
+    "terminal.integrated.fontFamily": "Fira Code",
+    "terminal.integrated.fontSize": 13,
+    "terminal.integrated.fontWeight": "300",
+    "debug.console.fontSize": 13,
+    "markdown.preview.fontSize": 13,
+    /* 
+    .
+    Settings for Error Lense
+    https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens
+    .
+    */
+    "errorLens.fontFamily": "Fira Code",
+    "errorLens.fontStyleItalic": false,
+    "errorLens.fontSize": "10",
+    // Distance between the last word on the line and the start of inline message
+    "errorLens.margin": "2ch",
+    // Configuration of the frame of the message
+    "errorLens.messageBackgroundMode": "message",
+    "errorLens.padding": "2px 2ch",
+    "errorLens.borderRadius": "5px 5px 5px 5px",
+    // message configuration
+    "errorLens.messageTemplate": "$code $message",
+    // status bar config
+    "errorLens.statusBarIconsEnabled": true,
+    "errorLens.statusBarMessageEnabled": true,
+    "errorLens.statusBarColorsEnabled": true,
+    "errorLens.delay": 500,
+    // icons on left bar
+    "errorLens.gutterIconsEnabled": false,
+}

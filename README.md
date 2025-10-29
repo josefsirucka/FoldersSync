@@ -1,2 +1,6 @@
 # FoldersSync
-MyLittleDemonstration
+
+My little public demonstration of my C# skills.
+
+
+
