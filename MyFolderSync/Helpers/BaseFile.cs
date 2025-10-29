@@ -28,6 +28,12 @@ public class FileBase : IFile
     public IFolder Folder { get; }
 
     /// <inheritdoc/>
+    public IFileInfo? FileInfo { get; set; }
+
+    /// <inheritdoc/>
+    public string? RelativePath { get; set; }
+
+    /// <inheritdoc/>
     public override string ToString()
     {
         return Path.Combine(Folder.FullPath, Name);

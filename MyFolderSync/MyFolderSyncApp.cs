@@ -21,7 +21,6 @@ public class MyFolderSyncApp : IDisposable
     private readonly Resolver _resolver = new();
     private readonly ArgumentsModel _settingsModel;
     private readonly TimerService _timerService;
-    private readonly SyncService _syncService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MyFolderSyncApp"/> class.
@@ -42,9 +41,7 @@ public class MyFolderSyncApp : IDisposable
             Environment.Exit(1);
         }
 
-        (TimerService TimerService, SyncService SyncService) services = InitServices();
-        _syncService = services.SyncService;
-        _timerService = services.TimerService;
+        _timerService = InitServices();
     }
 
     /// <inheritdoc/>
@@ -62,23 +59,10 @@ public class MyFolderSyncApp : IDisposable
         using CancellationTokenSource cts = new();
         CancellationToken token = cts.Token;
 
-        Task keyListener = Task.Run(() =>
-        {
-            while (!token.IsCancellationRequested)
-            {
-                if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
-                {
-                    cts.Cancel();
-                    break;
-                }
-
-                Task.Delay(100).Wait();
-            }
-        });
+        Task keyListener = ESCListenerTask(cts, token);
 
         try
         {
-
             await _timerService.StartTicking(token);
         }
         catch (OperationCanceledException)
@@ -96,7 +80,24 @@ public class MyFolderSyncApp : IDisposable
         }
     }
 
-    private (TimerService TimerService, SyncService SyncService) InitServices()
+    private Task ESCListenerTask(CancellationTokenSource source, CancellationToken token)
+    {
+        return Task.Run(() =>
+        {
+            while (!token.IsCancellationRequested)
+            {
+                if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
+                {
+                    source.Cancel();
+                    break;
+                }
+
+                Task.Delay(100).Wait();
+            }
+        }, token);
+    }
+
+    private TimerService InitServices()
     {
         IResult<IFile> logFileResult = _resolver.ResolveFileName(_settingsModel.LogPath);
         if (!logFileResult.Success)
@@ -116,6 +117,7 @@ public class MyFolderSyncApp : IDisposable
             .WriteTo.File(logPath, rollingInterval: RollingInterval.Day)
             .CreateLogger();
 
+        Log.Information("Application starting... (press ESC to stop)");
         Log.Debug(
             "Logger initialized with path: {LogPath} and level: {LogLevel}",
             logPath,
@@ -125,10 +127,7 @@ public class MyFolderSyncApp : IDisposable
         Log.Debug("Setting Interval to {Interval} seconds", _settingsModel.Interval);
 
         SyncService syncService = new(_settingsModel.ResolvedFolders, Log.Logger);
-        
-        return (
-            new TimerService(_settingsModel.Interval, Log.Logger, syncService),
-            syncService
-        );
+
+        return new TimerService(_settingsModel.Interval, Log.Logger, syncService);
     }
 }

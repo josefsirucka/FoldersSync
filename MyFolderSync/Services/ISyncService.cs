@@ -13,5 +13,7 @@ public interface ISyncService
     /// <summary>
     /// Starts the synchronization process.
     /// </summary>
-    Task SyncFoldersAsync();
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Asynchronous task.</returns>
+    Task SyncFoldersAsync(CancellationToken cancellationToken);
 }

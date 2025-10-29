@@ -21,6 +21,16 @@ public interface IFile
     IFolder Folder { get; }
 
     /// <summary>
+    /// Gets the file information.
+    /// </summary>
+    IFileInfo? FileInfo { get; set; }
+
+    /// <summary>
+    /// Gets or sets the relative file path - for comparison purposes.
+    /// </summary>
+    string? RelativePath  { get; set; }
+
+    /// <summary>
     /// Creates a new file instance.
     /// </summary>
     /// <param name="name">Name of the file.</param>

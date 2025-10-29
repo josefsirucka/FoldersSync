@@ -47,15 +47,15 @@ public class TimerService : IDisposable
     public async Task StartTicking(CancellationToken cancellationToken)
     {
         // Initial run
-        await RunAsync();
+        await RunAsync(cancellationToken);
 
         while (await _timer.WaitForNextTickAsync(cancellationToken))
         {
-            await RunAsync();
+            await RunAsync(cancellationToken);
         }
     }
 
-    private async Task RunAsync()
+    private async Task RunAsync(CancellationToken cancellationToken)
     {
         if (_syncInProgress)
         {
@@ -68,7 +68,7 @@ public class TimerService : IDisposable
         _logger.Information("Starting sync process...");
         try
         {
-            await _syncService.SyncFoldersAsync();
+            await _syncService.SyncFoldersAsync(cancellationToken);
             _logger.Information("Folder sync completed.");
         }
         catch (Exception ex)
