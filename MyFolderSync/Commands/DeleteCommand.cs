@@ -3,6 +3,8 @@
 // </copyright>
 // <summary>Created on: 31.10 2025</summary>
 
+#pragma warning disable CS1998
+
 using MyFolderSync.Helpers;
 using PerfectResult;
 using Serilog;
@@ -168,3 +170,5 @@ public sealed class DeleteCommand : SyncCommandBase
         }
     }
 }
+
+#pragma warning restore CS1998
