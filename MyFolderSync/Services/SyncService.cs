@@ -1,6 +1,7 @@
-// <copyright file="SyncService.cs" company="Papirfly Group">
-// Copyright (c) Papirfly Group. All rights reserved.
+// <copyright file="SyncService.cs" company="Josef Širůčka">
+// Copyright (c) Josef Širůčka. All rights reserved.
 // </copyright>
+// <summary>Created on: 31.10 2025</summary>
 
 using MyFolderSync.Commands;
 using MyFolderSync.Helpers;
