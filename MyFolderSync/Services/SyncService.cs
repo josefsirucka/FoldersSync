@@ -4,9 +4,7 @@
 
 using MyFolderSync.Commands;
 using MyFolderSync.Helpers;
-
 using PerfectResult;
-
 using Serilog;
 
 namespace MyFolderSync.Services;
@@ -40,28 +38,50 @@ public class SyncService : ISyncService
 
         foreach (KeyValuePair<IFolder, IFolder> syncPair in _foldersToSync)
         {
-            _logger.Information(
-                "Syncing from {Source} to {Destination}",
-                syncPair.Key.FullPath,
-                syncPair.Value.FullPath
-            );
+            _logger.Information("Scanning source: {Source}", syncPair.Key.FullPath);
+            IFile[] source = await GetAllFiles(syncPair.Key, cancellationToken);
 
-            Task<IFile[]> source = GetAllFiles(syncPair.Key);
-            Task<IFile[]> target = GetAllFiles(syncPair.Value);
-            IFile[][] result = await Task.WhenAll(source, target);
+            _logger.Information("Scanning target: {Target}", syncPair.Value.FullPath);
+            IFile[] target = await GetAllFiles(syncPair.Value, cancellationToken);
 
-            await SyncFolders(result);
+            IFile[][] result = [source, target];
 
+            IFile[][] analyzedFolders = AnylyzeFolders(result);
+
+            Task createFileTask = CreateFile(analyzedFolders[0], syncPair.Value);
+            Task overwriteFilesTask = MoveFile(analyzedFolders[1], syncPair.Value);
+            Task deleteFilesTask = DeleteFilesFromTarget(analyzedFolders[2], syncPair.Value);
+
+            await Task.WhenAll(createFileTask, overwriteFilesTask, deleteFilesTask);
+
+            await _commandProcessor.DisposeAsync();
         }
     }
 
-    private async Task<IFile[]> GetAllFiles(IFolder folder)
+    private void ReportStatus(string message, int totalItems, int itemsProcessed)
+    {
+        double progress = itemsProcessed / (double)totalItems * 100;
+        ConsoleHelper.WriteProcess(progress, message);
+    }
+
+    private async Task<IFile[]> GetAllFiles(IFolder folder, CancellationToken cancellationToken)
     {
         List<IFile> files = [];
-        string rootPath = folder.FullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        string rootPath = folder.FullPath.TrimEnd(
+            Path.DirectorySeparatorChar,
+            Path.AltDirectorySeparatorChar
+        );
 
-        foreach (string filePath in Directory.EnumerateFiles(folder.FullPath, "*", SearchOption.AllDirectories))
+        IEnumerable<string> filePaths = Directory.EnumerateFiles(
+            folder.FullPath,
+            "*",
+            SearchOption.AllDirectories
+        );
+        int i = 0;
+        foreach (string filePath in filePaths)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             FileInfo fileInfo = new(filePath);
 
             DateTime lastUpdate = fileInfo.LastWriteTimeUtc;
@@ -76,25 +96,43 @@ public class SyncService : ISyncService
 
             IFile sourceFile = fileResult.Value;
 
-            IResult<string> hashResult = await sourceFile.CalculateMD5Hash();
-            if (!hashResult.Success)
-            {
-                _logger.Error(hashResult.Message);
-                continue;
-            }
+            // Originally it was here, but I don't like it - due to operations overhead.
+            // Better to compare file size and last modified date only and check the hash later if needed.
+            // IResult<string> hashResult = sourceFile.CalculateMD5Hash();
+            // if (!hashResult.Success)
+            // {
+            //     _logger.Error(hashResult.Message);
+            //     continue;
+            // }
 
-            sourceFile.RelativePath = Path.GetRelativePath(rootPath, fileInfo.FullName).Replace('\\', '/');
 
-            FileInfoBase fileInfoBase = new(fileSize, lastUpdate, hashResult.Value);
+            // Originally I used : Path.GetRelativePath(rootPath, sourceFile.Folder.FullPath)
+            // But i created "." in same cases so I created my own method GetCleanRelative
+            sourceFile.RelativePath = GetCleanRelative(rootPath, sourceFile.Folder.FullPath);
+
+            FileInfoBase fileInfoBase = new(fileSize, lastUpdate);
             sourceFile.FileInfo = fileInfoBase;
 
             files.Add(sourceFile);
+
+            ReportStatus(
+                Path.Combine(sourceFile.RelativePath, sourceFile.Name),
+                filePaths.Count(),
+                ++i
+            );
+
+            if (i % 50 == 0)
+            {
+                await Task.Yield();
+            }
         }
+
+        ConsoleHelper.Clear();
 
         return files.ToArray();
     }
 
-    private IReadOnlyDictionary<IFolder, IFolder> CheckStartUpConditions(
+    private Dictionary<IFolder, IFolder> CheckStartUpConditions(
         IReadOnlyDictionary<IFolder, IFolder> sourceFolders
     )
     {
@@ -142,6 +180,19 @@ public class SyncService : ISyncService
 
     private IResult CheckSourceAndTargetFolders(IFolder source, IFolder target)
     {
+        IResult<IFolder> sourceResolvedResult = _resolver.ResolveFolderName(source.FullPath);
+        IResult<IFolder> targetResolvedResult = _resolver.ResolveFolderName(target.FullPath);
+
+        if (!sourceResolvedResult.Success)
+        {
+            return sourceResolvedResult;
+        }
+
+        if (!targetResolvedResult.Success)
+        {
+            return targetResolvedResult;
+        }
+
         source = _resolver.ResolveFolderName(source.FullPath).Value;
         target = _resolver.ResolveFolderName(target.FullPath).Value;
 
@@ -163,28 +214,104 @@ public class SyncService : ISyncService
         return IResult.SuccessResult();
     }
 
-    private async Task SyncFolders(IFile[][] files)
+    private IFile[][] AnylyzeFolders(IFile[][] files)
     {
         IFile[] sourceFiles = files[0].Where(f => f.RelativePath != null).ToArray();
         IFile[] targetFiles = files[1].Where(f => f.RelativePath != null).ToArray();
-        
+
         IFile[] copyToTarget = sourceFiles
-            .Where(sourceFile => !targetFiles.Any(targetFile => sourceFile.Name == targetFile.Name && sourceFile.RelativePath == targetFile.RelativePath))
+            .Where(sourceFile =>
+                !targetFiles.Any(targetFile =>
+                    sourceFile.Name == targetFile.Name
+                    && sourceFile.RelativePath == targetFile.RelativePath
+                )
+            )
             .ToArray();
 
         IFile[] modifiedFiles = sourceFiles
-            .Where(sourceFile => targetFiles.Any(targetFile =>
-                targetFile.RelativePath == sourceFile.RelativePath &&
-                (
-                    sourceFile.FileInfo?.Hash != targetFile.FileInfo?.Hash ||
-                    sourceFile.FileInfo?.FileSize != targetFile.FileInfo?.FileSize ||
-                    sourceFile.FileInfo?.LastModified != targetFile.FileInfo?.LastModified
-                )))
+            .Where(sourceFile =>
+                targetFiles.Any(targetFile =>
+                    targetFile.RelativePath == sourceFile.RelativePath
+                    && (
+                        //sourceFile.FileInfo?.Hash != targetFile.FileInfo?.Hash ||
+                        sourceFile.FileInfo?.FileSize != targetFile.FileInfo?.FileSize
+                        || sourceFile.FileInfo?.LastModified != targetFile.FileInfo?.LastModified
+                    )
+                )
+            )
             .ToArray();
 
-        
         IFile[] deleteFromTarget = targetFiles
-            .Where(targetFile => !sourceFiles.Any(sourceFile => sourceFile.RelativePath == targetFile.RelativePath))
+            .Where(targetFile =>
+                !sourceFiles.Any(sourceFile => sourceFile.RelativePath == targetFile.RelativePath)
+            )
             .ToArray();
+
+        _logger.Debug("Files to copy to target: {Count}", copyToTarget.Length);
+        _logger.Debug("Files to modify in target: {Count}", modifiedFiles.Length);
+        _logger.Debug("Files to delete from target: {Count}", deleteFromTarget.Length);
+
+        IFile[][] result = [copyToTarget, modifiedFiles, deleteFromTarget];
+        return result;
+    }
+
+    private async Task CreateFile(IFile[] sourceFile, IFolder targetFolder)
+    {
+        foreach (IFile item in sourceFile)
+        {
+            CopyCommand command = new(
+                _logger,
+                item,
+                targetFolder,
+                overWriteTarget: false,
+                preserveAttributes: true
+            );
+            _commandProcessor.AddCommand(command);
+            await Task.Yield();
+        }
+    }
+
+    private async Task MoveFile(IFile[] sourceFile, IFolder targetFolder)
+    {
+        foreach (IFile item in sourceFile)
+        {
+            CopyCommand command = new(
+                _logger,
+                item,
+                targetFolder,
+                overWriteTarget: true,
+                preserveAttributes: true
+            );
+            _commandProcessor.AddCommand(command);
+            await Task.Yield();
+        }
+    }
+
+    private async Task DeleteFilesFromTarget(IFile[] sourceFile, IFolder targetFolder)
+    {
+        foreach (IFile item in sourceFile)
+        {
+            DeleteCommand command = new(_logger, item, targetFolder, pruneEmptyDirectories: true);
+            _commandProcessor.AddCommand(command);
+            await Task.Yield();
+        }
+    }
+
+    private static string GetCleanRelative(string rootPath, string folderFullPath)
+    {
+        string root = Path.GetFullPath(rootPath);
+        string full = Path.GetFullPath(folderFullPath);
+
+        string rel = Path.GetRelativePath(root, full);
+
+        if (rel == "." || rel == "./" || rel == @".\")
+        {
+            return string.Empty;
+        }
+
+        rel = rel.Replace('/', Path.DirectorySeparatorChar)
+            .Replace('\\', Path.DirectorySeparatorChar);
+
+        return rel;
     }
 }

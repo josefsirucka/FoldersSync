@@ -94,6 +94,13 @@ public partial class Resolver
 
         fullPath = NormalizePath(fullPath);
 
+        if (IsDriveRoot(fullPath))
+        {
+            return IResult.FailureResult<IFolder>(
+                "Path cannot be only a drive root (e.g., C:\\ or D:)."
+            );
+        }
+
         bool isExistingFolder = Directory.Exists(fullPath);
         bool isExistingFile = File.Exists(fullPath);
         bool looksLikeFolder =
@@ -156,5 +163,27 @@ public partial class Resolver
         }
 
         return normalized;
+    }
+
+    private static bool IsDriveRoot(string path)
+    {
+        try
+        {
+            string? root = Path.GetPathRoot(path);
+
+            if (string.IsNullOrEmpty(root))
+            {
+                return false;
+            }
+
+            root = root.TrimEnd('\\', '/');
+            path = path.TrimEnd('\\', '/');
+
+            return string.Equals(root, path, StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

@@ -85,12 +85,17 @@ public class ArgumentsHandler
             string[] pairs = pair.Split("=>", StringSplitOptions.RemoveEmptyEntries);
             if (pairs.Length == 2)
             {
-                IFolder source = IFolder.Create(pairs[0]);
-                IFolder target = IFolder.Create(pairs[1]);
+                IFolder source = IFolder.Create(TrimPath(pairs[0]));
+                IFolder target = IFolder.Create(TrimPath(pairs[1]));
                 mappings[source] = target;
             }
         }
 
         return mappings;
+    }
+
+    private string TrimPath(string path)
+    {
+        return path.Trim();
     }
 }

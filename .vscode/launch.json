@@ -16,12 +16,13 @@
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/MyFolderSync/bin/Debug/net9.0/MyFolderSync.dll",
             "args": [
-                "-l Information",
-                "-p c:/temp/log.log",
-                "-f olders c:\\sdftemtet",
-                "-i 5"
+                "-l Debug ",
+                "-i 7777 ",
+                "-f c:\\Sync=>D:\\Sync",
             ],
-            "cwd": "${workspaceFolder}/MyFolderSync"
+            "cwd": "${workspaceFolder}/MyFolderSync",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
         }
 
     ]

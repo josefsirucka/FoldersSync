@@ -28,7 +28,7 @@ public interface IFile
     /// <summary>
     /// Gets or sets the relative file path - for comparison purposes.
     /// </summary>
-    string? RelativePath  { get; set; }
+    string? RelativePath { get; set; }
 
     /// <summary>
     /// Creates a new file instance.

@@ -23,5 +23,4 @@ public interface ISyncCommand
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Async task.</returns>
     Task ExecuteAsync(CancellationToken cancellationToken);
-
 }

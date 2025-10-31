@@ -19,9 +19,4 @@ public interface IFileInfo
     /// Gets the last modified date and time of the file.
     /// </summary>
     DateTime LastModified { get; }
-
-    /// <summary>
-    /// Gets the hash of the file content.
-    /// </summary>
-    string Hash { get; }
 }

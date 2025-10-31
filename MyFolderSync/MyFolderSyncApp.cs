@@ -6,9 +6,7 @@
 using MyFolderSync.Arguments;
 using MyFolderSync.Helpers;
 using MyFolderSync.Services;
-
 using PerfectResult;
-
 using Serilog;
 
 namespace MyFolderSync;
@@ -28,6 +26,8 @@ public class MyFolderSyncApp : IDisposable
     /// <param name="arguments">Command line arguments.</param>
     public MyFolderSyncApp(string[] arguments)
     {
+        ConsoleHelper.Welcome();
+
         IResult<ArgumentsModel> result = ArgumentsHandler.ProcessArgsAndGetSettings(arguments);
         if (result.Success)
         {
@@ -82,19 +82,22 @@ public class MyFolderSyncApp : IDisposable
 
     private Task ESCListenerTask(CancellationTokenSource source, CancellationToken token)
     {
-        return Task.Run(() =>
-        {
-            while (!token.IsCancellationRequested)
+        return Task.Run(
+            () =>
             {
-                if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
+                while (!token.IsCancellationRequested)
                 {
-                    source.Cancel();
-                    break;
-                }
+                    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
+                    {
+                        source.Cancel();
+                        break;
+                    }
 
-                Task.Delay(100).Wait();
-            }
-        }, token);
+                    Task.Delay(100).Wait();
+                }
+            },
+            token
+        );
     }
 
     private TimerService InitServices()

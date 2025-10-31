@@ -4,9 +4,7 @@
 // <summary>Created on: 29.10 2025</summary>
 
 using System.Threading.Channels;
-
 using MyFolderSync.Commands;
-
 using Serilog;
 
 namespace MyFolderSync.Services;
@@ -26,7 +24,8 @@ public class CommandProcessorService : IAsyncDisposable
     public CommandProcessorService(ILogger logger)
     {
         _channel = Channel.CreateUnbounded<ISyncCommand>(
-            new UnboundedChannelOptions { SingleReader = true, SingleWriter = false });
+            new UnboundedChannelOptions { SingleReader = true, SingleWriter = false }
+        );
 
         _logger = logger;
     }
@@ -63,7 +62,7 @@ public class CommandProcessorService : IAsyncDisposable
             }
             catch (Exception ex)
             {
-                _logger.Error($"Command failed: {ex}");
+                _logger.Error(ex, "Command failed: {Message}", command.Result.Message);
             }
         }
     }

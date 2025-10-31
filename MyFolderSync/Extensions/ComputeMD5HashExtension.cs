@@ -4,9 +4,7 @@
 // <summary>Created on: 29.10 2025</summary>
 
 using System.Security.Cryptography;
-
 using MyFolderSync.Helpers;
-
 using PerfectResult;
 
 namespace MyFolderSync;
@@ -21,7 +19,7 @@ public static class ComputeMD5HashExtension
     /// </summary>
     /// <param name="file">IFile instance.</param>
     /// <returns></returns>
-    public async static Task<IResult<string>> CalculateMD5Hash(this IFile file)
+    public static IResult<string> CalculateMD5Hash(this IFile file)
     {
         try
         {
@@ -31,9 +29,10 @@ public static class ComputeMD5HashExtension
         }
         catch (Exception ex)
         {
-            return IResult.FailureResult<string>($"Error computing MD5 hash for file: {file.GetFullPath()}", ex);
+            return IResult.FailureResult<string>(
+                $"Error computing MD5 hash for file: {file.GetFullPath()}",
+                ex
+            );
         }
     }
-
-
 }

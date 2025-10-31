@@ -70,22 +70,27 @@ public class TimerService : IDisposable
         {
             await _syncService.SyncFoldersAsync(cancellationToken);
             _logger.Information("Folder sync completed.");
+            LogNextRun();
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.Information("Sync interrupted by user.");
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "An error occurred during folder sync.");
+            LogNextRun();
         }
         finally
         {
             _syncInProgress = false;
-            LogNextRun();
         }
     }
 
     private void LogNextRun()
     {
         _logger.Information(
-            "Next sync scheduled in {Interval} seconds. At: {NextRunTime}",
+            "Next sync scheduled in {Interval} seconds. At: {NextRunTime}.",
             _interval,
             DateTime.Now.AddSeconds(_interval)
         );

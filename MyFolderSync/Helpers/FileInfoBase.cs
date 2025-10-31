@@ -16,12 +16,10 @@ public class FileInfoBase : IFileInfo
     /// </summary>
     /// <param name="fileSize">Size of the file.</param>
     /// <param name="lastModified">Last modified date and time.</param>
-    /// <param name="hash">Hash of the file.</param>
-    public FileInfoBase(long fileSize, DateTime lastModified, string hash)
+    public FileInfoBase(long fileSize, DateTime lastModified)
     {
         FileSize = fileSize;
         LastModified = lastModified;
-        Hash = hash;
     }
 
     /// <inheritdoc/>
@@ -29,7 +27,4 @@ public class FileInfoBase : IFileInfo
 
     /// <inheritdoc/>
     public DateTime LastModified { get; }
-
-    /// <inheritdoc/>
-    public string Hash { get; }
 }

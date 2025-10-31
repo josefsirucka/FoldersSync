@@ -5,7 +5,6 @@
 
 using MyFolderSync.Arguments;
 using PerfectResult;
-
 using Serilog.Events;
 
 namespace MyFolderSync.Tests;
@@ -18,8 +17,17 @@ public class ArgumentsHandlerTests
 {
     [TestCase("", false, null, TestName = "Empty arguments")]
     [TestCase("-f C:\\Source=>C:\\Target", true, 3600, TestName = "Single folder argument")]
-    [TestCase("-f C:\\Source=>C:\\Target someFolder/=>f:\\anotherFolder", true, 3600, TestName = "Single folder argument")]
-    public void CommandLineProcessingTest(string commandLineArguments, bool expectSuccess, int? interval = null)
+    [TestCase(
+        "-f C:\\Source=>C:\\Target someFolder/=>f:\\anotherFolder",
+        true,
+        3600,
+        TestName = "Single folder argument"
+    )]
+    public void CommandLineProcessingTest(
+        string commandLineArguments,
+        bool expectSuccess,
+        int? interval = null
+    )
     {
         string[] args = commandLineArguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         IResult<ArgumentsModel> result = ArgumentsHandler.ProcessArgsAndGetSettings(args);
@@ -27,7 +35,7 @@ public class ArgumentsHandlerTests
         Assert.Multiple(() =>
         {
             Assert.That(result.Success, Is.EqualTo(expectSuccess));
-            
+
             if (result.Success)
             {
                 Assert.That(result.Value.Interval, Is.EqualTo(interval));

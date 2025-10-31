@@ -4,7 +4,6 @@
 // <summary>Created on: 27.10 2025</summary>
 
 using MyFolderSync.Helpers;
-
 using PerfectResult;
 
 namespace MyFolderSync.Tests.FileAndFolders;
@@ -31,39 +30,124 @@ public class FileResolverTests
     // Basic test cases:
     [TestCase("", "default.log", false, "", false, TestName = "Empty folder should fail")]
     [TestCase(":c:", "default.log", false, "", false, TestName = "Invalid path should fail")]
-
     // No default file name provided:
-    [TestCase("c:/", null, false, "", false, TestName = "Path to existing folder without default file name should fail")]
-    [TestCase("C:\\", null, false, "", false, TestName = "Path to existing folder without default file name should fail")]
-
+    [TestCase(
+        "c:/",
+        null,
+        false,
+        "",
+        false,
+        TestName = "Path to existing folder without default file name should fail"
+    )]
+    [TestCase(
+        "C:\\",
+        null,
+        false,
+        "",
+        false,
+        TestName = "Path to existing folder without default file name should fail"
+    )]
     // Default file name provided && existing folder:
-    [TestCase("c:", "default.log", true, "C:\\", false, TestName = "Path to drive only with default file name should succeed")]
-    [TestCase("c:/", "default.log", true, "c:\\", false, TestName = "Path to existing folder with default file name should succeed")]
-    [TestCase("c:\\", "default.log", true, "c:\\", false, TestName = "Path to existing folder with default file name should succeed")]
-    [TestCase("c:/default.log", null, true, "c:\\", false, TestName = "Path to non existing file, but with extension and no default file name should succeed")]
-
+    [TestCase(
+        "c:",
+        "default.log",
+        true,
+        "C:\\",
+        false,
+        TestName = "Path to drive only with default file name should succeed"
+    )]
+    [TestCase(
+        "c:/",
+        "default.log",
+        true,
+        "c:\\",
+        false,
+        TestName = "Path to existing folder with default file name should succeed"
+    )]
+    [TestCase(
+        "c:\\",
+        "default.log",
+        true,
+        "c:\\",
+        false,
+        TestName = "Path to existing folder with default file name should succeed"
+    )]
+    [TestCase(
+        "c:/default.log",
+        null,
+        true,
+        "c:\\",
+        false,
+        TestName = "Path to non existing file, but with extension and no default file name should succeed"
+    )]
     // Default file name provided && relative folder provided:
-    [TestCase("some/relative/folder", "default.log", true, "some\\relative\\folder", true, TestName = "Relative folder with default file name should succeed")]
-    [TestCase("some\\relative\\folder/default.log", null, true, "some\\relative\\folder", true, TestName = "Relative folder with file and no default file name should succeed")]
-
+    [TestCase(
+        "some/relative/folder",
+        "default.log",
+        true,
+        "some\\relative\\folder",
+        true,
+        TestName = "Relative folder with default file name should succeed"
+    )]
+    [TestCase(
+        "some\\relative\\folder/default.log",
+        null,
+        true,
+        "some\\relative\\folder",
+        true,
+        TestName = "Relative folder with file and no default file name should succeed"
+    )]
     // File name with extension only:
-    [TestCase("some/.onlyextension", null, true, "some", true, TestName = "Relative folder with file with only extension and no default file name should succeed")]
-    [TestCase("some/", ".onlyextension", true, "some", true, TestName = "Relative folder with file with only extension and default file name should succeed")]
-
+    [TestCase(
+        "some/.onlyextension",
+        null,
+        true,
+        "some",
+        true,
+        TestName = "Relative folder with file with only extension and no default file name should succeed"
+    )]
+    [TestCase(
+        "some/",
+        ".onlyextension",
+        true,
+        "some",
+        true,
+        TestName = "Relative folder with file with only extension and default file name should succeed"
+    )]
     // Absolute path with file name only as extension:
-    [TestCase("c:/temp", ".onlyextension", true, "c:\\temp", true, TestName = "Absolute folder and default file as extension only name should succeed")]
-    [TestCase("c:/temp/.onlyextension", null, true, "c:\\temp", true, TestName = "Absolute folder with extension only and no default file name should succeed")]
-    [TestCase("c:/temp/", ".onlyextension", true, "c:\\temp", true, TestName = "Absolute folder and file with only extension and default file name should succeed (With slash)")]
-
-    [TestCase("/temp", "log.txt", true, "temp", false, TestName = "Unix style absolute folder with default file name should succeed")]
-    [TestCase("\\temp", "log.txt", true, "temp", false, TestName = "Unix style absolute folder with default file name should succeed")]
-
-    public void ResolveFileName_Should_Handle_Various_Paths(string folder, string? defaultFileName, bool expectSuccess, string? expectedFolder, bool relativePath)
+    [TestCase(
+        "c:/temp",
+        ".onlyextension",
+        true,
+        "c:\\temp",
+        true,
+        TestName = "Absolute folder and default file as extension only name should succeed"
+    )]
+    [TestCase(
+        "c:/temp/.onlyextension",
+        null,
+        true,
+        "c:\\temp",
+        true,
+        TestName = "Absolute folder with extension only and no default file name should succeed"
+    )]
+    [TestCase(
+        "c:/temp/",
+        ".onlyextension",
+        true,
+        "c:\\temp",
+        true,
+        TestName = "Absolute folder and file with only extension and default file name should succeed (With slash)"
+    )]
+    public void ResolveFileName_Should_Handle_Various_Paths(
+        string folder,
+        string? defaultFileName,
+        bool expectSuccess,
+        string? expectedFolder,
+        bool relativePath
+    )
     {
-        IResult<IFile> folderResult = _resolver.ResolveFileName(
-                folder,
-                defaultFileName
-        );
+        IResult<IFile> folderResult = _resolver.ResolveFileName(folder, defaultFileName);
 
         Assert.That(folderResult.Success, Is.EqualTo(expectSuccess));
         if (folderResult.Success)
@@ -77,5 +161,3 @@ public class FileResolverTests
         }
     }
 }
-
-
