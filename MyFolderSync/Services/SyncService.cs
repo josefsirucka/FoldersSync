@@ -275,6 +275,15 @@ public class SyncService : ISyncService
     {
         foreach (IFile item in sourceFile)
         {
+            if (MD5IsDifferent(item, targetFolder))
+            {
+                _logger.Warning(
+                    "File {File} is marked as modified but MD5 hashes are identical. Skipping overwrite.",
+                    item.GetFullPath()
+                );
+                continue;
+            }
+
             CopyCommand command = new(
                 _logger,
                 item,
@@ -313,5 +322,34 @@ public class SyncService : ISyncService
             .Replace('\\', Path.DirectorySeparatorChar);
 
         return rel;
+    }
+
+    private bool MD5IsDifferent(IFile sourceFile, IFolder targetFolder)
+    {
+        IResult<string> sourceHashResult = sourceFile.CalculateMD5Hash();
+        if (!sourceHashResult.Success)
+        {
+            _logger.Error(
+                "Failed to calculate MD5 hash for source file {File}: {Message}",
+                sourceFile.GetFullPath(),
+                sourceHashResult.Message
+            );
+            return true;
+        }
+
+        IFile targetFile = IFile.Create(sourceFile.Name, IFolder.Create(Path.Combine(targetFolder.FullPath, sourceFile.RelativePath ?? string.Empty)));
+
+        IResult<string> targetHashResult = targetFile.CalculateMD5Hash();
+        if (!targetHashResult.Success)
+        {
+            _logger.Error(
+                "Failed to calculate MD5 hash for target file {File}: {Message}",
+                targetFile.GetFullPath(),
+                targetHashResult.Message
+            );
+            return true;
+        }
+
+        return sourceHashResult.Value != targetHashResult.Value;
     }
 }
