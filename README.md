@@ -16,9 +16,9 @@ What I would be implementing in the future (know problems/issues):
 ### Possible problems
 - Checks if the target folder (disk) has proper free space for that backup
 - Unix folders (fodlers that starts with //folder)
+
 ### Minor bugs
 - Console reporting is not behaving correctly when it is small (automatic calculation if the window's width would be nice)
-
 
 ### Key Features
 
@@ -55,10 +55,6 @@ What I would be implementing in the future (know problems/issues):
 ```bash
 MyFolderSync -f "source_folder=>target_folder" [options]
 ```
-
-### Formatter
-
-I use csharpier to format my code: https://csharpier.com/
 
 ### Command Line Options
 
@@ -131,22 +127,17 @@ MyFolderSync/
 - Extensions/        # Utility extensions (MD5, file operations)
 - Helpers/           # Core abstractions (IFile, IFolder, Resolver)
 - Services/          # Business logic (SyncService, TimerService)
-MyFolderSync.Tests/  # Few Unit tests
+- MyFolderSync.Tests/  # Few Unit tests
 ```
+## Formatter
+
+I use csharpier to format my code: https://csharpier.com/
 
 ## Dependencies
 
 - **CommandLineParser** (2.9.1) - Command-line argument parsing
 - **Serilog** (4.3.0) - Structured logging
 - **PerfectResult** (1.0.3) - Result pattern implementation
-
-### Debug Mode
-
-In debug builds, the application waits for a key press before starting, allowing debugger attachment:
-
-```bash
-dotnet run --configuration Debug -- -f "source=>target"
-```
 
 ## Safety Features
 
