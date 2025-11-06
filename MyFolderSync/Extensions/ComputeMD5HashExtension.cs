@@ -4,7 +4,9 @@
 // <summary>Created on: 29.10 2025</summary>
 
 using System.Security.Cryptography;
+
 using MyFolderSync.Helpers;
+
 using PerfectResult;
 
 namespace MyFolderSync;
@@ -23,9 +25,13 @@ public static class ComputeMD5HashExtension
     {
         try
         {
+            using FileStream fileStream = new(file.GetFullPath(), FileMode.Open, FileAccess.Read, FileShare.Read);
             using MD5 md5 = MD5.Create();
-            byte[] hash = md5.ComputeHash(File.OpenRead(file.GetFullPath()));
-            return IResult.SuccessResult<string>(Convert.ToHexStringLower(hash));
+
+            byte[] hashBytes = md5.ComputeHash(fileStream);
+            string hash = Convert.ToHexString(hashBytes);
+
+            return IResult.SuccessResult<string>(hash);
         }
         catch (Exception ex)
         {
