@@ -18,7 +18,7 @@
             "args": [
                 "-l Debug ",
                 "-i 7777 ",
-                "-f c:\\Sync=>D:\\Sync",
+                "-f c:\\vvvv=>D:\\vvvv",
             ],
             "cwd": "${workspaceFolder}/MyFolderSync",
             "console": "integratedTerminal",

@@ -277,7 +277,7 @@ public class SyncService : ISyncService
     {
         foreach (IFile item in sourceFile)
         {
-            if (MD5IsDifferent(item, targetFolder))
+            if (!MD5IsDifferent(item, targetFolder))
             {
                 _logger.Warning(
                     "File {File} is marked as modified but MD5 hashes are identical. Skipping overwrite.",
