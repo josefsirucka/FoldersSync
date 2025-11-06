@@ -39,6 +39,7 @@ public class SyncService : ISyncService
 
         foreach (KeyValuePair<IFolder, IFolder> syncPair in _foldersToSync)
         {
+
             _logger.Information("Scanning source: {Source}", syncPair.Key.FullPath);
             IFile[] source = await GetAllFiles(syncPair.Key, cancellationToken);
 
@@ -54,9 +55,9 @@ public class SyncService : ISyncService
             Task deleteFilesTask = DeleteFilesFromTarget(analyzedFolders[2], syncPair.Value);
 
             await Task.WhenAll(createFileTask, overwriteFilesTask, deleteFilesTask);
-
-            await _commandProcessor.DisposeAsync();
         }
+        
+        await _commandProcessor.DisposeAsync();
     }
 
     private void ReportStatus(string message, int totalItems, int itemsProcessed)
